@@ -52,6 +52,10 @@ match self.bump() {
 About a third of `parser.t` is this. The docs (`05.1-control-flow.md`) say
 `?` waits for a trait that says what can be returned early.
 
+**Fixed in 0.27.0** (t-lang step 15, `docs/15-try.md`): each of these is
+now `self.term()?` or `self.bump()?;`. `parser.t` and `eval.t` lost 66
+lines, and the code has 42 `Result::`/`Option::` left of 120.
+
 ## No formatting, and `print_str` prints whole lines — gap
 
 There's no `format!`, no `Display`, no way to turn an integer into text,

@@ -63,17 +63,12 @@ pub enum Done<'a> {
 /// Runs `line`: works out its value, and binds it if it says to.
 pub fn run<'a>(line: &Line<'a>, env: &mut Env) -> Result<Done<'a>, Error<'a>> with {alloc, panic} {
     match line {
-        Line::Let(name, e) => match eval(e, env) {
-            Result::Ok(v) => {
-                env.set(*name, v);
-                Result::Ok(Done::Bound(*name, v))
-            },
-            Result::Err(e) => Result::Err(e),
+        Line::Let(name, e) => {
+            let v = eval(e, env)?;
+            env.set(*name, v);
+            Result::Ok(Done::Bound(*name, v))
         },
-        Line::Show(e) => match eval(e, env) {
-            Result::Ok(v) => Result::Ok(Done::Value(v)),
-            Result::Err(e) => Result::Err(e),
-        },
+        Line::Show(e) => Result::Ok(Done::Value(eval(e, env)?)),
     }
 }
 
@@ -85,22 +80,13 @@ pub fn eval<'a>(e: &Expr<'a>, env: &Env) -> Result<i64, Error<'a>> {
             Option::Some(v) => Result::Ok(v),
             Option::None => Result::Err(Error { what: What::UnknownVar(*name), at: *at }),
         },
-        Expr::Neg(e, at) => match eval(e, env) {
-            Result::Ok(v) => match checked_neg(v) {
-                Option::Some(v) => Result::Ok(v),
-                Option::None => Result::Err(Error { what: What::Overflow, at: *at }),
-            },
-            Result::Err(e) => Result::Err(e),
+        Expr::Neg(e, at) => match checked_neg(eval(e, env)?) {
+            Option::Some(v) => Result::Ok(v),
+            Option::None => Result::Err(Error { what: What::Overflow, at: *at }),
         },
         Expr::Bin(op, l, r, at) => {
-            let l = match eval(l, env) {
-                Result::Ok(v) => v,
-                Result::Err(e) => return Result::Err(e),
-            };
-            let r = match eval(r, env) {
-                Result::Ok(v) => v,
-                Result::Err(e) => return Result::Err(e),
-            };
+            let l = eval(l, env)?;
+            let r = eval(r, env)?;
             let what = match op {
                 Op::Div | Op::Rem => if r == 0 { What::DivByZero } else { What::Overflow },
                 _ => What::Overflow,

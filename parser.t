@@ -31,15 +31,9 @@ pub enum Line<'a> { Let(&'a str, Expr<'a>), Show(Expr<'a>) }
 /// The tree of `line`, or the first thing wrong with it.
 pub fn parse(line: &str) -> Result<Line, Error> with {alloc, panic} {
     let mut lexer = Lexer::new(line);
-    let tok = match lexer.next() {
-        Result::Ok(t) => t,
-        Result::Err(e) => return Result::Err(e),
-    };
+    let tok = lexer.next()?;
     let mut p = Parser { lexer, tok };
-    let line = match p.line() {
-        Result::Ok(l) => l,
-        Result::Err(e) => return Result::Err(e),
-    };
+    let line = p.line()?;
     match p.tok.tok {
         Tok::End => Result::Ok(line),
         _ => Result::Err(p.unexpected()),
@@ -53,13 +47,8 @@ struct Parser<'a> { lexer: Lexer<'a>, tok: Token<'a> }
 impl<'a> Parser<'a> {
     /// Moves on to the next token.
     fn bump(&mut self) -> Result<(), Error<'a>> with panic {
-        match self.lexer.next() {
-            Result::Ok(t) => {
-                self.tok = t;
-                Result::Ok(())
-            },
-            Result::Err(e) => Result::Err(e),
-        }
+        self.tok = self.lexer.next()?;
+        Result::Ok(())
     }
 
     /// The error for the token it's at, which can't be there.
@@ -76,31 +65,19 @@ impl<'a> Parser<'a> {
                 match ahead.next() {
                     Result::Ok(Token { tok: Tok::Assign, .. }) => {
                         self.lexer = ahead;
-                        match self.bump() {
-                            Result::Ok(()) => {},
-                            Result::Err(e) => return Result::Err(e),
-                        }
-                        return match self.expr() {
-                            Result::Ok(e) => Result::Ok(Line::Let(name, e)),
-                            Result::Err(e) => Result::Err(e),
-                        };
+                        self.bump()?;
+                        return Result::Ok(Line::Let(name, self.expr()?));
                     },
                     _ => {},
                 }
             },
             _ => {},
         }
-        match self.expr() {
-            Result::Ok(e) => Result::Ok(Line::Show(e)),
-            Result::Err(e) => Result::Err(e),
-        }
+        Result::Ok(Line::Show(self.expr()?))
     }
 
     fn expr(&mut self) -> Result<Expr<'a>, Error<'a>> with {alloc, panic} {
-        let mut lhs = match self.term() {
-            Result::Ok(e) => e,
-            Result::Err(e) => return Result::Err(e),
-        };
+        let mut lhs = self.term()?;
         loop {
             let op = match self.tok.tok {
                 Tok::Plus => Op::Add,
@@ -108,23 +85,14 @@ impl<'a> Parser<'a> {
                 _ => return Result::Ok(lhs),
             };
             let at = self.tok.at;
-            match self.bump() {
-                Result::Ok(()) => {},
-                Result::Err(e) => return Result::Err(e),
-            }
-            let rhs = match self.term() {
-                Result::Ok(e) => e,
-                Result::Err(e) => return Result::Err(e),
-            };
+            self.bump()?;
+            let rhs = self.term()?;
             lhs = Expr::Bin(op, Box::new(lhs), Box::new(rhs), at);
         }
     }
 
     fn term(&mut self) -> Result<Expr<'a>, Error<'a>> with {alloc, panic} {
-        let mut lhs = match self.unary() {
-            Result::Ok(e) => e,
-            Result::Err(e) => return Result::Err(e),
-        };
+        let mut lhs = self.unary()?;
         loop {
             let op = match self.tok.tok {
                 Tok::Star => Op::Mul,
@@ -133,14 +101,8 @@ impl<'a> Parser<'a> {
                 _ => return Result::Ok(lhs),
             };
             let at = self.tok.at;
-            match self.bump() {
-                Result::Ok(()) => {},
-                Result::Err(e) => return Result::Err(e),
-            }
-            let rhs = match self.unary() {
-                Result::Ok(e) => e,
-                Result::Err(e) => return Result::Err(e),
-            };
+            self.bump()?;
+            let rhs = self.unary()?;
             lhs = Expr::Bin(op, Box::new(lhs), Box::new(rhs), at);
         }
     }
@@ -149,14 +111,8 @@ impl<'a> Parser<'a> {
         match self.tok.tok {
             Tok::Minus => {
                 let at = self.tok.at;
-                match self.bump() {
-                    Result::Ok(()) => {},
-                    Result::Err(e) => return Result::Err(e),
-                }
-                match self.unary() {
-                    Result::Ok(e) => Result::Ok(Expr::Neg(Box::new(e), at)),
-                    Result::Err(e) => Result::Err(e),
-                }
+                self.bump()?;
+                Result::Ok(Expr::Neg(Box::new(self.unary()?), at))
             },
             _ => self.atom(),
         }
@@ -167,14 +123,8 @@ impl<'a> Parser<'a> {
             Tok::Num(n) => Expr::Num(n),
             Tok::Name(name) => Expr::Var(name, self.tok.at),
             Tok::Open => {
-                match self.bump() {
-                    Result::Ok(()) => {},
-                    Result::Err(e) => return Result::Err(e),
-                }
-                let e = match self.expr() {
-                    Result::Ok(e) => e,
-                    Result::Err(e) => return Result::Err(e),
-                };
+                self.bump()?;
+                let e = self.expr()?;
                 match self.tok.tok {
                     Tok::Close => e,
                     _ => return Result::Err(self.unexpected()),
@@ -182,9 +132,7 @@ impl<'a> Parser<'a> {
             },
             _ => return Result::Err(self.unexpected()),
         };
-        match self.bump() {
-            Result::Ok(()) => Result::Ok(e),
-            Result::Err(e) => Result::Err(e),
-        }
+        self.bump()?;
+        Result::Ok(e)
     }
 }
