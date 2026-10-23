@@ -1,0 +1,62 @@
+> 1 + 2 * 3
+7
+> (1 + 2) * 3
+9
+> 10 - 4 - 3
+3
+> 100 / 10 / 5
+2
+> 7 % 4 * 3
+9
+> -2 * 3
+-6
+> --5
+5
+> -7 / 2
+-3
+> -7 % 2
+-1
+> x = 2 * 3
+x = 6
+> x * x
+36
+> y = x - 10
+y = -4
+> x = y
+x = -4
+> x + y
+-8
+> long_name_2 = 9223372036854775807
+long_name_2 = 9223372036854775807
+> 2 $ 3
+    ^ unknown character `$`
+> 1 + € 2
+      ^ unknown character `€`
+> 1 +
+     ^ unexpected end of input
+> (1 + 2
+        ^ unexpected end of input
+> 1 + 2)
+       ^ unexpected `)`
+> x y
+    ^ unexpected `y`
+> 3 = 4
+    ^ unexpected `=`
+> 
+  ^ unexpected end of input
+> z + 1
+  ^ unknown variable `z`
+> 1 / (x - y)
+    ^ division by zero
+> 5 % 0
+    ^ division by zero
+> long_name_2 + 1
+              ^ overflow: the value doesn't fit in an `i64`
+> -long_name_2 - 2
+               ^ overflow: the value doesn't fit in an `i64`
+> 99999999999999999999
+  ^ overflow: the value doesn't fit in an `i64`
+> x = 1 / 0
+        ^ division by zero
+> x
+-4
