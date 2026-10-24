@@ -1,7 +1,7 @@
-// tcalc: a calculator of integers, with variables.
-//
-// T can't read input yet, so the lines it works out are written here.
-// Each is printed after `> `, and then its value or what's wrong with it.
+//! tcalc: a calculator of integers, with variables.
+//!
+//! T can't read input yet, so the lines it works out are written here.
+//! Each is printed after `> `, and then its value or what's wrong with it.
 
 use alloc::string::String;
 

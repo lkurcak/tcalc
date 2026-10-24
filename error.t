@@ -1,4 +1,4 @@
-// What can go wrong with a line, and where.
+//! What can go wrong with a line, and where.
 
 use crate::lexer::Tok;
 

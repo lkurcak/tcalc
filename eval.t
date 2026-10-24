@@ -1,7 +1,7 @@
-// The evaluator: a syntax tree's value, and the variables lines bind.
-//
-// Nothing here can panic: every operator is a `checked_*`, and what
-// would panic is an error instead.
+//! The evaluator: a syntax tree's value, and the variables lines bind.
+//!
+//! Nothing here can panic: every operator is a `checked_*`, and what
+//! would panic is an error instead.
 
 use alloc::list::List;
 use alloc::string::String;

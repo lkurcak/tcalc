@@ -1,10 +1,10 @@
-// The parser: a line's tokens, as a syntax tree.
-//
-//     line  = name "=" expr | expr
-//     expr  = term { ("+" | "-") term }
-//     term  = unary { ("*" | "/" | "%") unary }
-//     unary = "-" unary | atom
-//     atom  = number | name | "(" expr ")"
+//! The parser: a line's tokens, as a syntax tree.
+//!
+//!     line  = name "=" expr | expr
+//!     expr  = term { ("+" | "-") term }
+//!     term  = unary { ("*" | "/" | "%") unary }
+//!     unary = "-" unary | atom
+//!     atom  = number | name | "(" expr ")"
 
 use crate::error::{Error, What};
 use crate::lexer::{Lexer, Tok, Token};

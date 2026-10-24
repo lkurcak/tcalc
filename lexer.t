@@ -1,4 +1,4 @@
-// The tokenizer: a line of text, as tokens, one at a time.
+//! The tokenizer: a line of text, as tokens, one at a time.
 
 use crate::error::{Error, What};
 
