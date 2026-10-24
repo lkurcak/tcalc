@@ -6,6 +6,8 @@
 //!     unary = "-" unary | atom
 //!     atom  = number | name | "(" expr ")"
 
+use alloc::boxed::Box;
+
 use crate::error::{Error, What};
 use crate::lexer::{Lexer, Tok, Token};
 
