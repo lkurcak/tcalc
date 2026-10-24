@@ -5,7 +5,7 @@
 
 use alloc::string::String;
 use core::fmt::Write;
-use std::io::{Stdin, Stdout};
+use std::io::Stdout;
 use std::Os;
 
 use error::{Error, What};
@@ -17,27 +17,16 @@ mod eval;
 mod lexer;
 mod parser;
 
+/// Reads lines until there are no more, and works out each, after a
+/// `> ` prompt, with the variables bound so far.
 fn main(os: Os) -> Result<(), std::io::Error> with {alloc, panic} {
     let mut input = os.stdin;
     let mut out = os.stdout;
     let mut env = Env::new();
     let mut line = String::new();
-    let done = repl(&mut input, &mut out, &mut env, &mut line);
-    line.free();
-    env.free();
-    done
-}
-
-/// Reads lines until there are no more, and works out each, after a
-/// `> ` prompt, with the variables in `env`. `line` is where each line is
-/// read to.
-fn repl(input: &mut Stdin, out: &mut Stdout, env: &mut Env, line: &mut String) -> Result<
-    (),
-    std::io::Error,
-> with {alloc, panic} {
     out.put(&"> ")?;
-    while input.read_line(line)? {
-        calc(out, env, line.as_str())?;
+    while input.read_line(&mut line)? {
+        calc(&mut out, &mut env, line.as_str())?;
         out.put(&"> ")?;
     }
     out.line(&"")
@@ -61,9 +50,7 @@ with {alloc, panic}
         Result::Ok(Done::Value(v)) => text.put(&v).into_ok(),
         Result::Err(e) => report(&mut text, line, e),
     }
-    let written = out.line(&text.as_str());
-    text.free();
-    written
+    out.line(&text.as_str())
 }
 
 /// A `^` under where `e` is in `line`, which was typed after `> `, and

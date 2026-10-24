@@ -85,7 +85,7 @@ the least `i64`. But every program will write this.)
 Printing `> ` before a line takes a `String`, a `push_str` and a `free`
 too (`calc` in `main.t`).
 
-## `?` while holding something linear — by design, costly
+## `?` while holding something linear — by design, costly (fixed in 0.33.0)
 
 Since 0.32.0 output goes through `std`'s `Stdout`, and each write gives a
 `Result` that `?` passes on. But `?` returns early, and `main` holds the
@@ -110,6 +110,12 @@ and only then passes the write's result on. It's sound, and the reason
 is right, but it's ceremony every function owning a `String` and writing
 will have. t-lang's docs/19-std-io.md lists the ways out (destructors,
 `defer`, `try` blocks).
+
+**Fixed in 0.33.0** (t-lang step 20, destructors): a `String` and a
+`List` are `Discard`, freed where they're dropped, so `Env` derives
+`Discard`, `Env::free` is gone, `repl` is back in `main` with its `?`s,
+and `calc` writes its text with `out.line(&text.as_str())` as its last
+expression. No `free` is left in tcalc.
 
 ## Can't tell a terminal from a pipe — gap
 

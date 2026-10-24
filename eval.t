@@ -10,10 +10,12 @@ use crate::error::{Error, What};
 use crate::parser::{Expr, Line, Op};
 
 /// A variable and its value.
+#[derive(Discard)]
 struct Var { name: String, value: i64 }
 
 /// The variables bound so far. It owns their names, so it outlives the
-/// lines that bound them, and must be freed.
+/// lines that bound them.
+#[derive(Discard)]
 pub struct Env { vars: List<Var> }
 
 impl Env {
@@ -39,15 +41,6 @@ impl Env {
             }
         }
         self.vars.push(Var { name: String::from(name), value });
-    }
-
-    /// Gives the names' memory back.
-    pub fn free(self) {
-        let Env { vars } = self;
-        vars.free_with(|v| {
-            let Var { name, .. } = v;
-            name.free();
-        });
     }
 }
 
