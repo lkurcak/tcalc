@@ -31,13 +31,13 @@ tests/run.sh      # check: no warnings, formatted, output is tests/expected.txt
 BLESS=1 tests/run.sh   # rewrite tests/expected.txt
 ```
 
-It needs `t` 0.26.0, the version CI pins (in `.github/workflows/ci.yml`).
+It needs `t` 0.27.0, the version CI pins (in `.github/workflows/ci.yml`).
 Any of these installs it:
 
 - a release binary from <https://github.com/lkurcak/t-lang/releases>, which
   is what CI does, checking its SHA-256;
 - `brew install lkurcak/tap/t-lang`;
-- `cargo install t-lang --version 0.26.0` (needs a C compiler).
+- `cargo install t-lang --version 0.27.0` (needs a C compiler).
 
 ## How it's built
 
