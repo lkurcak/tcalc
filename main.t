@@ -1,11 +1,11 @@
 //! tcalc: a calculator of integers, with variables.
 //!
-//! The lines it works out are written here, for now. Each is written
-//! after `> `, and then its value or what's wrong with it.
+//! It reads lines, after a `> ` prompt, and writes the value of each, or
+//! where and what's wrong with it, until its input ends.
 
 use alloc::string::String;
 use core::fmt::Write;
-use std::io::Stdout;
+use std::io::{Stdin, Stdout};
 use std::Os;
 
 use error::{Error, What};
@@ -18,58 +18,35 @@ mod lexer;
 mod parser;
 
 fn main(os: Os) -> Result<(), std::io::Error> with {alloc, panic} {
+    let mut input = os.stdin;
     let mut out = os.stdout;
     let mut env = Env::new();
-    let done = examples(&mut out, &mut env);
+    let mut line = String::new();
+    let done = repl(&mut input, &mut out, &mut env, &mut line);
+    line.free();
     env.free();
     done
 }
 
-/// Works out each line, one after another, with the variables in `env`.
-fn examples(out: &mut Stdout, env: &mut Env) -> Result<(), std::io::Error> with {alloc, panic} {
-    // Precedence and associativity.
-    calc(out, env, "1 + 2 * 3")?;
-    calc(out, env, "(1 + 2) * 3")?;
-    calc(out, env, "10 - 4 - 3")?;
-    calc(out, env, "100 / 10 / 5")?;
-    calc(out, env, "7 % 4 * 3")?;
-    calc(out, env, "-2 * 3")?;
-    calc(out, env, "--5")?;
-    calc(out, env, "-7 / 2")?;
-    calc(out, env, "-7 % 2")?;
-    // Variables.
-    calc(out, env, "x = 2 * 3")?;
-    calc(out, env, "x * x")?;
-    calc(out, env, "y = x - 10")?;
-    calc(out, env, "x = y")?;
-    calc(out, env, "x + y")?;
-    calc(out, env, "long_name_2 = 9223372036854775807")?;
-    // Errors.
-    calc(out, env, "2 $ 3")?;
-    calc(out, env, "1 + € 2")?;
-    calc(out, env, "1 +")?;
-    calc(out, env, "(1 + 2")?;
-    calc(out, env, "1 + 2)")?;
-    calc(out, env, "x y")?;
-    calc(out, env, "3 = 4")?;
-    calc(out, env, "")?;
-    calc(out, env, "z + 1")?;
-    calc(out, env, "1 / (x - y)")?;
-    calc(out, env, "5 % 0")?;
-    calc(out, env, "long_name_2 + 1")?;
-    calc(out, env, "-long_name_2 - 2")?;
-    calc(out, env, "99999999999999999999")?;
-    // An error leaves the variables as they were.
-    calc(out, env, "x = 1 / 0")?;
-    calc(out, env, "x")
+/// Reads lines until there are no more, and works out each, after a
+/// `> ` prompt, with the variables in `env`. `line` is where each line is
+/// read to.
+fn repl(input: &mut Stdin, out: &mut Stdout, env: &mut Env, line: &mut String) -> Result<
+    (),
+    std::io::Error,
+> with {alloc, panic} {
+    out.put(&"> ")?;
+    while input.read_line(line)? {
+        calc(out, env, line.as_str())?;
+        out.put(&"> ")?;
+    }
+    out.line(&"")
 }
 
-/// Writes `line`, and then its value, or where and what's wrong with it.
+/// Writes the value of `line`, or where and what's wrong with it.
 fn calc(out: &mut Stdout, env: &mut Env, line: &str) -> Result<(), std::io::Error>
 with {alloc, panic}
 {
-    out.put(&"> ")?;
-    out.line(&line)?;
     let done = match parser::parse(line) {
         Result::Ok(l) => eval::run(&l, env),
         Result::Err(e) => Result::Err(e),
@@ -89,7 +66,7 @@ with {alloc, panic}
     written
 }
 
-/// A `^` under where `e` is in `line`, which was written after `> `, and
+/// A `^` under where `e` is in `line`, which was typed after `> `, and
 /// then what's wrong.
 fn report(out: &mut String, line: &str, e: Error) with {alloc, panic} {
     // The caret goes under the character, so count characters, not bytes.

@@ -1,6 +1,6 @@
 #!/bin/sh
 # Checks tcalc: it type-checks with no warnings, it's formatted, and its
-# output is tests/expected.txt. Run from anywhere; `t` must be on PATH.
+# output for tests/input.txt is tests/expected.txt. Run from anywhere; `t` must be on PATH.
 # BLESS=1 rewrites tests/expected.txt with what it prints now.
 set -eu
 cd "$(dirname "$0")/.."
@@ -14,13 +14,23 @@ fi
 
 t fmt --check ./*.t
 
+# tcalc's output, with each line of tests/input.txt after the prompt it
+# answers, as at a terminal, where what's typed is echoed. Each line gives
+# one line of output; the last prompt, at the end of the input, gives none.
+transcript() {
+    t main.t < tests/input.txt |
+        awk 'NR == FNR { input[FNR] = $0; next }
+             FNR in input { print "> " input[FNR]; print substr($0, 3) }' \
+            tests/input.txt -
+}
+
 if [ "${BLESS:-}" = 1 ]; then
-    t main.t > tests/expected.txt
+    transcript > tests/expected.txt
     echo "wrote tests/expected.txt"
     exit 0
 fi
 
-t main.t > tests/actual.txt
+transcript > tests/actual.txt
 if ! diff -u tests/expected.txt tests/actual.txt; then
     echo "FAIL: output differs from tests/expected.txt"
     exit 1

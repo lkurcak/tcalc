@@ -19,25 +19,24 @@ error saying where it is and what's wrong (an unknown character, an
 unexpected token or end of input, an unknown variable, division by zero,
 overflow), and the next line goes on as if it hadn't been there.
 
-T can't read input yet, so the lines tcalc works out are written in
-`main.t`. Running it prints each one after `> `, and then its value or its
-error.
+It reads lines from its input, after a `> ` prompt, and writes the value
+of each, or its error, until the input ends (Ctrl-D at a terminal).
 
 ## Running it
 
 ```sh
-t main.t          # run
-tests/run.sh      # check: no warnings, formatted, output is tests/expected.txt
+t main.t          # run, reading lines you type
+tests/run.sh      # check: no warnings, formatted, and tests/input.txt gives tests/expected.txt
 BLESS=1 tests/run.sh   # rewrite tests/expected.txt
 ```
 
-It needs `t` 0.27.0, the version CI pins (in `.github/workflows/ci.yml`).
+It needs `t` 0.32.0, the version CI pins (in `.github/workflows/ci.yml`).
 Any of these installs it:
 
 - a release binary from <https://github.com/lkurcak/t-lang/releases>, which
   is what CI does, checking its SHA-256;
 - `brew install lkurcak/tap/t-lang`;
-- `cargo install t-lang --version 0.27.0` (needs a C compiler).
+- `cargo install t-lang --version 0.32.0` (needs a C compiler).
 
 ## How it's built
 
