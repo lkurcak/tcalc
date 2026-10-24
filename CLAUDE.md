@@ -62,7 +62,7 @@ Commands: `t <file.t>` runs a program, `t check`, `t mono`, `t fmt
 ## How the author likes to work
 
 - Soundness and principled design first. Ask before decisions that are
-  the author's to make, one at a time, each with a recommendation.
+  the author's to make, each with a recommendation.
 - Commit work in progress at milestones. `git` over ssh doesn't work in
   Claude's shell, so push and fetch over https with `gh auth setup-git`
   and the https URL.
