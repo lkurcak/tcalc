@@ -80,6 +80,30 @@ the least `i64`. But every program will write this.)
 Printing `> ` before a line takes a `String`, a `push_str` and a `free`
 too (`calc` in `main.t`).
 
+## `?` while holding something linear — by design, costly
+
+Since 0.32.0 output goes through `std`'s `Stdout`, and each write gives a
+`Result` that `?` passes on. But `?` returns early, and `main` holds the
+`Env`, which isn't `Discard`, so `main` can't use `?` while it does. The
+lines moved into a function of their own that borrows the `Env`, and
+`main` frees it after:
+
+```rust,ignore
+fn main(os: Os) -> Result<(), std::io::Error> with {alloc, panic} {
+    let mut out = os.stdout;
+    let mut env = Env::new();
+    let done = examples(&mut out, &mut env);
+    env.free();
+    done
+}
+```
+
+`calc` does the same with the `String` it builds: it writes it, frees it,
+and only then passes the write's result on. It's sound, and the reason
+is right, but it's ceremony every function owning a `String` and writing
+will have. t-lang's docs/19-std-io.md lists the ways out (destructors,
+`defer`, `try` blocks).
+
 ## Every `String` must be freed by hand — by design
 
 `String` isn't `Discard`, so each one is used up by `free()`. `calc` makes
