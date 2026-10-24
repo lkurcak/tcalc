@@ -4,6 +4,7 @@
 //! Each is printed after `> `, and then its value or what's wrong with it.
 
 use alloc::string::String;
+use core::fmt::Write;
 
 use error::{Error, What};
 use eval::{Done, Env};
@@ -69,9 +70,9 @@ fn calc(env: &mut Env, line: &str) with {alloc, panic} {
         Result::Ok(Done::Bound(name, v)) => {
             out.push_str(name);
             out.push_str(" = ");
-            push_int(&mut out, v);
+            out.put(&v);
         },
-        Result::Ok(Done::Value(v)) => push_int(&mut out, v),
+        Result::Ok(Done::Value(v)) => out.put(&v).into_ok(),
         Result::Err(e) => report(&mut out, line, e),
     }
     print_str(out.as_str());
@@ -112,9 +113,9 @@ fn report(out: &mut String, line: &str, e: Error) with {alloc, panic} {
 }
 
 /// Puts how `t` is written at the end of `out`.
-fn push_tok(out: &mut String, t: Tok) with {alloc, panic} {
+fn push_tok(out: &mut String, t: Tok) with alloc {
     match t {
-        Tok::Num(n) => push_int(out, n),
+        Tok::Num(n) => out.put(&n).into_ok(),
         Tok::Name(name) => out.push_str(name),
         Tok::Plus => out.push('+'),
         Tok::Minus => out.push('-'),
@@ -126,25 +127,4 @@ fn push_tok(out: &mut String, t: Tok) with {alloc, panic} {
         Tok::Assign => out.push('='),
         Tok::End => {},
     }
-}
-
-/// Puts `n` in decimal at the end of `out`.
-fn push_int(out: &mut String, n: i64) with {alloc, panic} {
-    // Work with `-|n|`, as every `i64`'s negation that's `<= 0` is one,
-    // which isn't so of `|n|`.
-    if n < 0 {
-        out.push('-');
-        push_digits(out, n);
-    } else {
-        push_digits(out, -n);
-    }
-}
-
-/// Puts the digits of `-m` at the end of `out`.
-fn push_digits(out: &mut String, m: { v: i64 | v <= 0 }) with {alloc, panic} {
-    if m <= -10 {
-        push_digits(out, m / 10);
-    }
-    let digit = -(m % 10);
-    out.push((digit as u32 + 0x30) as char);
 }
