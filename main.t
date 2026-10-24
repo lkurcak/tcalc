@@ -72,9 +72,7 @@ fn calc(env: &mut Env, line: &str) with {alloc, panic} {
             out.push_str(" = ");
             out.put(&v);
         },
-        Result::Ok(Done::Value(v)) => {
-            out.put(&v);
-        },
+        Result::Ok(Done::Value(v)) => out.put(&v).into_ok(),
         Result::Err(e) => report(&mut out, line, e),
     }
     print_str(out.as_str());
@@ -117,9 +115,7 @@ fn report(out: &mut String, line: &str, e: Error) with {alloc, panic} {
 /// Puts how `t` is written at the end of `out`.
 fn push_tok(out: &mut String, t: Tok) with alloc {
     match t {
-        Tok::Num(n) => {
-            out.put(&n);
-        },
+        Tok::Num(n) => out.put(&n).into_ok(),
         Tok::Name(name) => out.push_str(name),
         Tok::Plus => out.push('+'),
         Tok::Minus => out.push('-'),
