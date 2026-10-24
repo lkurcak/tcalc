@@ -28,6 +28,11 @@ line it read, which is where real input would make a difference: the
 variables already copy their names into `String`s (`Env::set`), so that
 part would carry over.
 
+**Fixed in 0.32.0** (t-lang step 19, `docs/19-std-io.md`): `main` is given
+the `Os`, and reads lines with `stdin.read_line(&mut line)?`. It did carry
+over: the line is one `String`, read into again and again, and nothing
+else changed. The lines that were in `main.t` are `tests/input.txt`.
+
 ## No `?` — gap
 
 Every fallible call is a four-line `match`. `parser.t` has twelve of
@@ -98,11 +103,21 @@ fn main(os: Os) -> Result<(), std::io::Error> with {alloc, panic} {
 }
 ```
 
-`calc` does the same with the `String` it builds: it writes it, frees it,
+The REPL made it two: `main` owns the `Env` and the line it reads into,
+and `repl` borrows both, with every `?`. `calc` does the same with the
+`String` it builds: it writes it, frees it,
 and only then passes the write's result on. It's sound, and the reason
 is right, but it's ceremony every function owning a `String` and writing
 will have. t-lang's docs/19-std-io.md lists the ways out (destructors,
 `defer`, `try` blocks).
+
+## Can't tell a terminal from a pipe — gap
+
+At a terminal, what's typed is echoed after the `> `, so the output reads
+as a transcript. Piped from `tests/input.txt`, it's only prompts and
+answers, and an error's `^` points at nothing. tcalc can't echo its input
+only when it isn't a terminal, as T has no `isatty`, so `tests/run.sh`
+puts the input back in with `awk`. Small, but every REPL wants it.
 
 ## Every `String` must be freed by hand — by design
 
