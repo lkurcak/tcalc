@@ -168,6 +168,16 @@ tokenizer says `with panic`, and so does everything that calls it, though
 none of it can panic. A gap if measures are coming; by design if `with
 panic` is the honest answer here.
 
+**Measures arrived in 0.34.0** (t-lang step 21, `docs/21-measures.md`),
+and don't fix this yet. A refinement can now say `n <= self.rest.len()`,
+but `skip` can't show that the new `rest` is `n` bytes shorter: it comes
+out of `split_at`, an `Option`, because `n` must be where a character
+starts, which isn't a measure (it has an argument), and a refinement
+can't be inside the `Option` to relate the halves to `rest` (no
+refinements in type arguments). Both are listed as missing there. So the
+tokenizer still says `with panic`; what changed is that the reason is
+now one the docs name, not "measures don't exist".
+
 ## `Box::new` is `with {alloc, panic}` — by design
 
 The parser builds `Box`es, so it says `with {alloc, panic}`: running out
