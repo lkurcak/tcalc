@@ -236,6 +236,16 @@ lifetime does for both the line's text and the arena, as `&'a str` is
 covariant; `Expr` became `Copy`; `eval.t` didn't change. What's left:
 `Arena<Expr<'a>>` is written three times, with no type aliases.
 
+## `with` on every function — fixed in 0.37.0
+
+Every function that could panic or allocate said so, `with {alloc,
+panic}` on most of the parser and `main`, though nothing outside tcalc
+calls any of them. Since t 0.37.0 a function that isn't exported has the
+effects its body has: tcalc writes no `with` at all now, and nothing else
+changed. The parser's functions call each other (`expr` → `term` →
+`unary` → `atom` → `expr`), and get theirs together. Hovering a function
+in an editor shows what was inferred.
+
 ## Expected, but didn't hurt
 
 - **Tuples.** `Lexer::next` gives a `Token { tok, at }`, which reads

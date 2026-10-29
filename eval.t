@@ -33,7 +33,7 @@ impl Env {
     }
 
     /// Binds `name` to `value`, or rebinds it.
-    pub fn set(&mut self, name: &str, value: i64) with alloc {
+    pub fn set(&mut self, name: &str, value: i64) {
         for v in self.vars.iter_mut() {
             if v.name.as_str() == name {
                 v.value = value;
@@ -54,7 +54,7 @@ pub enum Done<'a> {
 }
 
 /// Runs `line`: works out its value, and binds it if it says to.
-pub fn run<'a>(line: &Line<'a>, env: &mut Env) -> Result<Done<'a>, Error<'a>> with alloc {
+pub fn run<'a>(line: &Line<'a>, env: &mut Env) -> Result<Done<'a>, Error<'a>> {
     match line {
         Line::Let(name, e) => {
             let v = eval(e, env)?;
