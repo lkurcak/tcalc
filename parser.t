@@ -6,7 +6,7 @@
 //!     unary = "-" unary | atom
 //!     atom  = number | name | "(" expr ")"
 
-use alloc::boxed::Box;
+use alloc::arena::Arena;
 
 use crate::error::{Error, What};
 use crate::lexer::{Lexer, Tok, Token};
@@ -15,14 +15,15 @@ use crate::lexer::{Lexer, Tok, Token};
 #[derive(Discard, Copy, Eq)]
 pub enum Op { Add, Sub, Mul, Div, Rem }
 
-/// An expression. Each operator and name has the byte of the line it's
-/// at, to say where an error is.
-#[derive(Discard)]
+/// An expression, whose parts are in an arena, as long as the line it's
+/// of. Each operator and name has the byte of the line it's at, to say
+/// where an error is.
+#[derive(Discard, Copy)]
 pub enum Expr<'a> {
     Num(i64),
     Var(&'a str, usize),
-    Neg(Box<Expr<'a>>, usize),
-    Bin(Op, Box<Expr<'a>>, Box<Expr<'a>>, usize),
+    Neg(&'a Expr<'a>, usize),
+    Bin(Op, &'a Expr<'a>, &'a Expr<'a>, usize),
 }
 
 /// A line: a name bound to the value of an expression, or an expression
@@ -30,11 +31,14 @@ pub enum Expr<'a> {
 #[derive(Discard)]
 pub enum Line<'a> { Let(&'a str, Expr<'a>), Show(Expr<'a>) }
 
-/// The tree of `line`, or the first thing wrong with it.
-pub fn parse(line: &str) -> Result<Line, Error> with {alloc, panic} {
+/// The tree of `line`, with its parts in `nodes`, or the first thing
+/// wrong with it.
+pub fn parse<'a>(line: &'a str, nodes: &'a Arena<Expr<'a>>) -> Result<Line<'a>, Error<'a>>
+with {alloc, panic}
+{
     let mut lexer = Lexer::new(line);
     let tok = lexer.next()?;
-    let mut p = Parser { lexer, tok };
+    let mut p = Parser { lexer, tok, nodes };
     let line = p.line()?;
     match p.tok.tok {
         Tok::End => Result::Ok(line),
@@ -44,9 +48,12 @@ pub fn parse(line: &str) -> Result<Line, Error> with {alloc, panic} {
 
 /// Where it's up to: `tok` is the next token, and `lexer` is after it.
 #[derive(Discard)]
-struct Parser<'a> { lexer: Lexer<'a>, tok: Token<'a> }
+struct Parser<'a> { lexer: Lexer<'a>, tok: Token<'a>, nodes: &'a Arena<Expr<'a>> }
 
 impl<'a> Parser<'a> {
+    /// `e`, put in the arena.
+    fn node(&self, e: Expr<'a>) -> &'a Expr<'a> with alloc { self.nodes.alloc(e) }
+
     /// Moves on to the next token.
     fn bump(&mut self) -> Result<(), Error<'a>> with panic {
         self.tok = self.lexer.next()?;
@@ -89,7 +96,7 @@ impl<'a> Parser<'a> {
             let at = self.tok.at;
             self.bump()?;
             let rhs = self.term()?;
-            lhs = Expr::Bin(op, Box::new(lhs), Box::new(rhs), at);
+            lhs = Expr::Bin(op, self.node(lhs), self.node(rhs), at);
         }
     }
 
@@ -105,7 +112,7 @@ impl<'a> Parser<'a> {
             let at = self.tok.at;
             self.bump()?;
             let rhs = self.unary()?;
-            lhs = Expr::Bin(op, Box::new(lhs), Box::new(rhs), at);
+            lhs = Expr::Bin(op, self.node(lhs), self.node(rhs), at);
         }
     }
 
@@ -114,7 +121,7 @@ impl<'a> Parser<'a> {
             Tok::Minus => {
                 let at = self.tok.at;
                 self.bump()?;
-                Result::Ok(Expr::Neg(Box::new(self.unary()?), at))
+                Result::Ok(Expr::Neg(self.node(self.unary()?), at))
             },
             _ => self.atom(),
         }

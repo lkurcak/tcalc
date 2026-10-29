@@ -3,6 +3,7 @@
 //! It reads lines, after a `> ` prompt, and writes the value of each, or
 //! where and what's wrong with it, until its input ends.
 
+use alloc::arena::Arena;
 use alloc::string::String;
 use core::fmt::Write;
 use std::io::Stdout;
@@ -36,7 +37,8 @@ fn main(os: Os) -> Result<(), std::io::Error> with {alloc, panic} {
 fn calc(out: &mut Stdout, env: &mut Env, line: &str) -> Result<(), std::io::Error>
 with {alloc, panic}
 {
-    let done = match parser::parse(line) {
+    let nodes = Arena::new();
+    let done = match parser::parse(line, &nodes) {
         Result::Ok(l) => eval::run(&l, env),
         Result::Err(e) => Result::Err(e),
     };
