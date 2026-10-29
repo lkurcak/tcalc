@@ -31,9 +31,12 @@ pub enum Expr<'a> {
 #[derive(Discard)]
 pub enum Line<'a> { Let(&'a str, Expr<'a>), Show(Expr<'a>) }
 
+/// Where a line's expressions are, for as long as the line.
+pub type Nodes<'a> = Arena<Expr<'a>>;
+
 /// The tree of `line`, with its parts in `nodes`, or the first thing
 /// wrong with it.
-pub fn parse<'a>(line: &'a str, nodes: &'a Arena<Expr<'a>>) -> Result<Line<'a>, Error<'a>> {
+pub fn parse<'a>(line: &'a str, nodes: &'a Nodes<'a>) -> Result<Line<'a>, Error<'a>> {
     let mut lexer = Lexer::new(line);
     let tok = lexer.next()?;
     let mut p = Parser { lexer, tok, nodes };
@@ -46,7 +49,7 @@ pub fn parse<'a>(line: &'a str, nodes: &'a Arena<Expr<'a>>) -> Result<Line<'a>, 
 
 /// Where it's up to: `tok` is the next token, and `lexer` is after it.
 #[derive(Discard)]
-struct Parser<'a> { lexer: Lexer<'a>, tok: Token<'a>, nodes: &'a Arena<Expr<'a>> }
+struct Parser<'a> { lexer: Lexer<'a>, tok: Token<'a>, nodes: &'a Nodes<'a> }
 
 impl<'a> Parser<'a> {
     /// `e`, put in the arena.
