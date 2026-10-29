@@ -226,6 +226,16 @@ lkurcak/t-lang --json assets`), so CI downloads one by URL and checks it,
 with no Rust toolchain. Locally, a Homebrew install had stayed at 0.23.0
 while 0.26.0 was out, which is Homebrew's way, not T's.
 
+## A box for each node — fixed in 0.36.0
+
+`Expr` held its operands in `Box`es, one allocation and one free per node,
+though every tree lives exactly as long as its line. With
+`alloc::arena::Arena` (t 0.36.0) the parser puts nodes in an arena that
+`calc` makes for each line, and `Expr<'a>` holds `&'a Expr<'a>`s. One
+lifetime does for both the line's text and the arena, as `&'a str` is
+covariant; `Expr` became `Copy`; `eval.t` didn't change. What's left:
+`Arena<Expr<'a>>` is written three times, with no type aliases.
+
 ## Expected, but didn't hurt
 
 - **Tuples.** `Lexer::next` gives a `Token { tok, at }`, which reads
