@@ -233,8 +233,10 @@ though every tree lives exactly as long as its line. With
 `alloc::arena::Arena` (t 0.36.0) the parser puts nodes in an arena that
 `calc` makes for each line, and `Expr<'a>` holds `&'a Expr<'a>`s. One
 lifetime does for both the line's text and the arena, as `&'a str` is
-covariant; `Expr` became `Copy`; `eval.t` didn't change. What's left:
-`Arena<Expr<'a>>` is written three times, with no type aliases.
+covariant; `Expr` became `Copy`; `eval.t` didn't change. What was left,
+`Arena<Expr<'a>>` written three times with no type aliases, is
+`Nodes<'a>` since t 0.38.0: `pub type Nodes<'a> = Arena<Expr<'a>>;` in
+`parser.t`. `main` doesn't name it, as `Arena::new()`'s type is inferred.
 
 ## `with` on every function — fixed in 0.37.0
 
