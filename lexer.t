@@ -33,7 +33,7 @@ impl<'a> Lexer<'a> {
     pub fn new(line: &'a str) -> Lexer<'a> { Lexer { rest: line, at: 0 } }
 
     /// The next token, or what's wrong with the text where it would be.
-    pub fn next(&mut self) -> Result<Token<'a>, Error<'a>> with panic {
+    pub fn next(&mut self) -> Result<Token<'a>, Error<'a>> {
         self.skip_spaces();
         let at = self.at;
         let c = match self.rest.chars().next() {
@@ -61,7 +61,7 @@ impl<'a> Lexer<'a> {
     }
 
     /// Skips spaces and tabs.
-    fn skip_spaces(&mut self) with panic {
+    fn skip_spaces(&mut self) {
         loop {
             match self.rest.chars().next() {
                 Option::Some(' ' | '\t') => self.skip(1),
@@ -71,14 +71,14 @@ impl<'a> Lexer<'a> {
     }
 
     /// Skips `n` bytes, which must end where a character does.
-    fn skip(&mut self, n: usize) with panic {
+    fn skip(&mut self, n: usize) {
         let rest = self.rest;
         self.rest = rest.split_at(n).expect("skipping whole characters").tail;
         self.at = self.at + n;
     }
 
     /// The decimal digits from here on, as a number.
-    fn number(&mut self) -> Result<Token<'a>, Error<'a>> with panic {
+    fn number(&mut self) -> Result<Token<'a>, Error<'a>> {
         let at = self.at;
         let mut value: Option<i64> = Option::Some(0);
         loop {
@@ -106,7 +106,7 @@ impl<'a> Lexer<'a> {
     }
 
     /// The name from here on: letters, digits and `_`.
-    fn name(&mut self) -> &'a str with panic {
+    fn name(&mut self) -> &'a str {
         let start = self.rest;
         let mut n = 0usize;
         for c in start.chars() {

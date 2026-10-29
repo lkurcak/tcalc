@@ -33,9 +33,7 @@ pub enum Line<'a> { Let(&'a str, Expr<'a>), Show(Expr<'a>) }
 
 /// The tree of `line`, with its parts in `nodes`, or the first thing
 /// wrong with it.
-pub fn parse<'a>(line: &'a str, nodes: &'a Arena<Expr<'a>>) -> Result<Line<'a>, Error<'a>>
-with {alloc, panic}
-{
+pub fn parse<'a>(line: &'a str, nodes: &'a Arena<Expr<'a>>) -> Result<Line<'a>, Error<'a>> {
     let mut lexer = Lexer::new(line);
     let tok = lexer.next()?;
     let mut p = Parser { lexer, tok, nodes };
@@ -52,10 +50,10 @@ struct Parser<'a> { lexer: Lexer<'a>, tok: Token<'a>, nodes: &'a Arena<Expr<'a>>
 
 impl<'a> Parser<'a> {
     /// `e`, put in the arena.
-    fn node(&self, e: Expr<'a>) -> &'a Expr<'a> with alloc { self.nodes.alloc(e) }
+    fn node(&self, e: Expr<'a>) -> &'a Expr<'a> { self.nodes.alloc(e) }
 
     /// Moves on to the next token.
-    fn bump(&mut self) -> Result<(), Error<'a>> with panic {
+    fn bump(&mut self) -> Result<(), Error<'a>> {
         self.tok = self.lexer.next()?;
         Result::Ok(())
     }
@@ -65,7 +63,7 @@ impl<'a> Parser<'a> {
         Error { what: What::Unexpected(self.tok.tok), at: self.tok.at }
     }
 
-    fn line(&mut self) -> Result<Line<'a>, Error<'a>> with {alloc, panic} {
+    fn line(&mut self) -> Result<Line<'a>, Error<'a>> {
         // `name =` starts a binding: look one token past the name, on a
         // copy of the lexer.
         match self.tok.tok {
@@ -85,7 +83,7 @@ impl<'a> Parser<'a> {
         Result::Ok(Line::Show(self.expr()?))
     }
 
-    fn expr(&mut self) -> Result<Expr<'a>, Error<'a>> with {alloc, panic} {
+    fn expr(&mut self) -> Result<Expr<'a>, Error<'a>> {
         let mut lhs = self.term()?;
         loop {
             let op = match self.tok.tok {
@@ -100,7 +98,7 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn term(&mut self) -> Result<Expr<'a>, Error<'a>> with {alloc, panic} {
+    fn term(&mut self) -> Result<Expr<'a>, Error<'a>> {
         let mut lhs = self.unary()?;
         loop {
             let op = match self.tok.tok {
@@ -116,7 +114,7 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn unary(&mut self) -> Result<Expr<'a>, Error<'a>> with {alloc, panic} {
+    fn unary(&mut self) -> Result<Expr<'a>, Error<'a>> {
         match self.tok.tok {
             Tok::Minus => {
                 let at = self.tok.at;
@@ -127,7 +125,7 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn atom(&mut self) -> Result<Expr<'a>, Error<'a>> with {alloc, panic} {
+    fn atom(&mut self) -> Result<Expr<'a>, Error<'a>> {
         let e = match self.tok.tok {
             Tok::Num(n) => Expr::Num(n),
             Tok::Name(name) => Expr::Var(name, self.tok.at),

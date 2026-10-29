@@ -20,7 +20,7 @@ mod parser;
 
 /// Reads lines until there are no more, and works out each, after a
 /// `> ` prompt, with the variables bound so far.
-fn main(os: Os) -> Result<(), std::io::Error> with {alloc, panic} {
+fn main(os: Os) -> Result<(), std::io::Error> {
     let mut input = os.stdin;
     let mut out = os.stdout;
     let mut env = Env::new();
@@ -34,9 +34,7 @@ fn main(os: Os) -> Result<(), std::io::Error> with {alloc, panic} {
 }
 
 /// Writes the value of `line`, or where and what's wrong with it.
-fn calc(out: &mut Stdout, env: &mut Env, line: &str) -> Result<(), std::io::Error>
-with {alloc, panic}
-{
+fn calc(out: &mut Stdout, env: &mut Env, line: &str) -> Result<(), std::io::Error> {
     let nodes = Arena::new();
     let done = match parser::parse(line, &nodes) {
         Result::Ok(l) => eval::run(&l, env),
@@ -57,7 +55,7 @@ with {alloc, panic}
 
 /// A `^` under where `e` is in `line`, which was typed after `> `, and
 /// then what's wrong.
-fn report(out: &mut String, line: &str, e: Error) with {alloc, panic} {
+fn report(out: &mut String, line: &str, e: Error) {
     // The caret goes under the character, so count characters, not bytes.
     let before = line.split_at(e.at).expect("an error is where a character starts").head;
     let column = before.chars().count();
@@ -89,7 +87,7 @@ fn report(out: &mut String, line: &str, e: Error) with {alloc, panic} {
 }
 
 /// Puts how `t` is written at the end of `out`.
-fn push_tok(out: &mut String, t: Tok) with alloc {
+fn push_tok(out: &mut String, t: Tok) {
     match t {
         Tok::Num(n) => out.put(&n).into_ok(),
         Tok::Name(name) => out.push_str(name),
