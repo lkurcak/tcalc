@@ -12,8 +12,8 @@ permissions:
 env:
   # The `t` tcalc is checked with. Bump both together, from the release's
   # asset digest: `gh release view vX.Y.Z -R lkurcak/t-lang --json assets`.
-  T_VERSION: v0.42.0
-  T_SHA256: 7001c7507007189314f5997fe358fb2f77e262dd08888666af2ae854ef6767f7
+  T_VERSION: v0.43.0
+  T_SHA256: 5a44b57261ec778bdcea8bea75de732b17c34e26f323e368c2e9c4dd1fce2e9d
 
 jobs:
   test:
