@@ -192,6 +192,20 @@ Variables are a `List` searched front to back (`Env::get`, `Env::set`).
 Fine for a calculator; a map would need hashing or `Ord` on keys, and a
 `List<(String, i64)>` would need tuples, so it's a `struct Var`.
 
+**Fixed with t 0.40.0** (t-lang steps 26–27, packages and git dependencies):
+the variables are a `hashmap::Map<String, i64>` from
+[t-hashmap](https://github.com/lkurcak/t-hashmap), a T library depending on
+nothing but `core` and `alloc`, named in `t.toml` by its commit:
+
+```toml
+[dependencies]
+hashmap = { git = "https://github.com/lkurcak/t-hashmap", rev = "<full hash>" }
+```
+
+`Env::get(name: &str)` asks the map about the `&str` directly, without
+making a `String` of it (the library's `Probe` trait), and `struct Var` is
+gone. What writing the library ran into is in its own `FRICTION.md`.
+
 ## No pattern guards — by design
 
 Taking a digit in the tokenizer wants `Option::Some(c) if c.is_ascii_digit()`;

@@ -22,6 +22,10 @@ overflow), and the next line goes on as if it hadn't been there.
 It reads lines from its input, after a `> ` prompt, and writes the value
 of each, or its error, until the input ends (Ctrl-D at a terminal).
 
+It depends on one package,
+[t-hashmap](https://github.com/lkurcak/t-hashmap), for its variables, by
+commit (`t.toml`); `t` fetches it the first time it's needed.
+
 ## Running it
 
 ```sh

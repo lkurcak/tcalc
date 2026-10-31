@@ -3,44 +3,37 @@
 //! Nothing here can panic: every operator is a `checked_*`, and what
 //! would panic is an error instead.
 
-use alloc::list::List;
 use alloc::string::String;
+use hashmap::Map;
 
 use crate::error::{Error, What};
 use crate::parser::{Expr, Line, Op};
 
-/// A variable and its value.
+/// The variables bound so far, by name. It owns their names, so it
+/// outlives the lines that bound them.
 #[derive(Discard)]
-struct Var { name: String, value: i64 }
-
-/// The variables bound so far. It owns their names, so it outlives the
-/// lines that bound them.
-#[derive(Discard)]
-pub struct Env { vars: List<Var> }
+pub struct Env { vars: Map<String, i64> }
 
 impl Env {
     /// No variables.
-    pub fn new() -> Env { Env { vars: List::new() } }
+    pub fn new() -> Env { Env { vars: Map::new() } }
 
     /// The value of `name`, if it's bound.
     pub fn get(&self, name: &str) -> Option<i64> {
-        for v in self.vars.iter() {
-            if v.name.as_str() == name {
-                return Option::Some(v.value);
-            }
+        match self.vars.get(name) {
+            Option::Some(v) => Option::Some(*v),
+            Option::None => Option::None,
         }
-        Option::None
     }
 
     /// Binds `name` to `value`, or rebinds it.
     pub fn set(&mut self, name: &str, value: i64) {
-        for v in self.vars.iter_mut() {
-            if v.name.as_str() == name {
-                v.value = value;
-                return;
-            }
+        match self.vars.get_mut(name) {
+            Option::Some(v) => *v = value,
+            Option::None => {
+                self.vars.insert(String::from(name), value);
+            },
         }
-        self.vars.push(Var { name: String::from(name), value });
     }
 }
 

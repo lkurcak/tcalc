@@ -1,0 +1,2 @@
+[dependencies]
+hashmap = { git = "https://github.com/lkurcak/t-hashmap", rev = "4ae49bb18afab4a87d6445e6832dec92d0588bb4" }
