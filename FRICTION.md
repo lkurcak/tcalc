@@ -225,13 +225,28 @@ let digit = match self.rest.chars().next() {
 `02-adts.md` leaves guards out because they make exhaustiveness
 approximate. The cost here was small.
 
-## No test command — gap
+## No test command — fixed in 0.44.0
 
 `tests/run.sh` runs `t check`, `t fmt --check` and the program, and diffs
 the output against `tests/expected.txt`. It also fails on warnings, which
 `t check` prints but doesn't fail on, so it has to look at what `t check`
 printed. Something like `t test`, or the `// expect:` comments the
 compiler's own tests use, would replace it.
+
+Since t 0.44.0: `#[test]`s in `main.t` check `answer` (what `calc` writes,
+split off so a test needs no `Stdout`), and `t check --deny-warnings`
+replaced looking at what `t check` printed. The transcript stays a script's:
+a test gets no `Os`, so nothing tests what the REPL reads and writes.
+
+Two small things, from writing them:
+
+- `assert_eq` takes references, so comparing strings is
+  `assert_eq(&got.as_str(), &want[i])`: a `&&str`. Unsure; the price of no
+  macros.
+- A failure inside the `answers` helper is shown at the helper's
+  `assert_eq`, the innermost call outside core, not at the test that
+  called it: which row failed is only in the values shown. Unsure; a test
+  with one `answers` call each keeps it readable.
 
 ## Installing a pinned `t` — not friction
 

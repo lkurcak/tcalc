@@ -1,18 +1,14 @@
 #!/bin/sh
-# Checks tcalc: it type-checks with no warnings, it's formatted, and its
-# output for tests/input.txt is tests/expected.txt. Run from anywhere; `t` must be on PATH.
+# Checks tcalc: it type-checks with no warnings, it's formatted, its tests
+# pass, and its output for tests/input.txt is tests/expected.txt. Run from
+# anywhere; `t` must be on PATH.
 # BLESS=1 rewrites tests/expected.txt with what it prints now.
 set -eu
 cd "$(dirname "$0")/.."
 
-warnings=$(t check main.t 2>&1)
-if [ -n "$warnings" ]; then
-    printf '%s\n' "$warnings"
-    echo "FAIL: t check printed warnings"
-    exit 1
-fi
-
+t check --deny-warnings main.t
 t fmt --check ./*.t
+t test --deny-warnings main.t
 
 # tcalc's output, with each line of tests/input.txt after the prompt it
 # answers, as at a terminal, where what's typed is echoed. Each line gives

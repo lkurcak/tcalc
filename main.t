@@ -35,6 +35,12 @@ fn main(os: Os) -> Result<(), std::io::Error> {
 
 /// Writes the value of `line`, or where and what's wrong with it.
 fn calc(out: &mut Stdout, env: &mut Env, line: &str) -> Result<(), std::io::Error> {
+    out.line(&answer(env, line).as_str())
+}
+
+/// The value of `line`, or where and what's wrong with it, as `calc`
+/// writes it.
+fn answer(env: &mut Env, line: &str) -> String {
     let nodes = Arena::new();
     let done = match parser::parse(line, &nodes) {
         Result::Ok(l) => eval::run(&l, env),
@@ -50,7 +56,7 @@ fn calc(out: &mut Stdout, env: &mut Env, line: &str) -> Result<(), std::io::Erro
         Result::Ok(Done::Value(v)) => text.put(&v).into_ok(),
         Result::Err(e) => report(&mut text, line, e),
     }
-    out.line(&text.as_str())
+    text
 }
 
 /// A `^` under where `e` is in `line`, which was typed after `> `, and
@@ -101,4 +107,60 @@ fn push_tok(out: &mut String, t: Tok) {
         Tok::Assign => out.push('='),
         Tok::End => {},
     }
+}
+
+/// What each line gives, worked out in turn with the same variables.
+fn answers(lines: &[&str], want: &[&str]) {
+    let mut env = Env::new();
+    assert_eq(&lines.len(), &want.len());
+    let mut i: usize = 0;
+    while i < lines.len() && i < want.len() {
+        let got = answer(&mut env, lines[i]);
+        assert_eq(&got.as_str(), &want[i]);
+        i = i + 1;
+    }
+}
+
+#[test]
+fn precedence_and_associativity() {
+    answers(
+        ["1 + 2 * 3", "(1 + 2) * 3", "10 - 4 - 3", "100 / 10 / 5", "7 % 4 * 3"].as_slice(),
+        ["7", "9", "3", "2", "9"].as_slice(),
+    );
+}
+
+#[test]
+fn negation_rounds_toward_zero() {
+    answers(["-2 * 3", "--5", "-7 / 2", "-7 % 2"].as_slice(), ["-6", "5", "-3", "-1"].as_slice());
+}
+
+#[test]
+fn variables_bind_and_rebind() {
+    answers(
+        ["x = 2 * 3", "x * x", "y = x - 10", "x = y", "x + y"].as_slice(),
+        ["x = 6", "36", "y = -4", "x = -4", "-8"].as_slice(),
+    );
+}
+
+#[test]
+fn errors_say_where() {
+    answers(
+        ["2 $ 3", "1 +", "1 + 2)", "z + 1", "5 % 0", "99999999999999999999"].as_slice(),
+        [
+            "    ^ unknown character `$`",
+            "     ^ unexpected end of input",
+            "       ^ unexpected `)`",
+            "  ^ unknown variable `z`",
+            "    ^ division by zero",
+            "  ^ overflow: the value doesn't fit in an `i64`",
+        ].as_slice(),
+    );
+}
+
+#[test]
+fn an_error_binds_nothing() {
+    answers(
+        ["x = 1 / 0", "x"].as_slice(),
+        ["        ^ division by zero", "  ^ unknown variable `x`"].as_slice(),
+    );
 }
