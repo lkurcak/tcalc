@@ -36,9 +36,8 @@ impl<'a> Lexer<'a> {
     pub fn next(&mut self) -> Result<Token<'a>, Error<'a>> {
         self.skip_spaces();
         let at = self.at;
-        let c = match self.rest.chars().next() {
-            Option::Some(c) => c,
-            Option::None => return Result::Ok(Token { tok: Tok::End, at }),
+        let Option::Some(c) = self.rest.chars().next() else {
+            return Result::Ok(Token { tok: Tok::End, at });
         };
         let tok = match c {
             '0'..='9' => return self.number(),
@@ -62,11 +61,8 @@ impl<'a> Lexer<'a> {
 
     /// Skips spaces and tabs.
     fn skip_spaces(&mut self) {
-        loop {
-            match self.rest.chars().next() {
-                Option::Some(' ' | '\t') => self.skip(1),
-                _ => return,
-            }
+        while let Option::Some(' ' | '\t') = self.rest.chars().next() {
+            self.skip(1);
         }
     }
 
@@ -81,14 +77,9 @@ impl<'a> Lexer<'a> {
     fn number(&mut self) -> Result<Token<'a>, Error<'a>> {
         let at = self.at;
         let mut value: Option<i64> = Option::Some(0);
-        loop {
-            let digit = match self.rest.chars().next() {
-                Option::Some(c) => match c {
-                    '0'..='9' => (c as u32 - 0x30) as i64,
-                    _ => break,
-                },
-                Option::None => break,
-            };
+        while let Option::Some(c) = self.rest.chars().next() {
+            let '0'..='9' = c else { break };
+            let digit = (c as u32 - 0x30) as i64;
             self.skip(1);
             // Once it's too big, it stays `None`, and the digits go on.
             value = match value {
