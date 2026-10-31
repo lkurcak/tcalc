@@ -30,7 +30,7 @@ commit (`t.toml`); `t` fetches it the first time it's needed.
 
 ```sh
 t main.t          # run, reading lines you type
-tests/run.sh      # check: no warnings, formatted, and tests/input.txt gives tests/expected.txt
+tests/run.sh      # check: no warnings, formatted, t test passes, and tests/input.txt gives tests/expected.txt
 BLESS=1 tests/run.sh   # rewrite tests/expected.txt
 ```
 
