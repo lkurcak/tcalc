@@ -69,19 +69,13 @@ impl<'a> Parser<'a> {
     fn line(&mut self) -> Result<Line<'a>, Error<'a>> {
         // `name =` starts a binding: look one token past the name, on a
         // copy of the lexer.
-        match self.tok.tok {
-            Tok::Name(name) => {
-                let mut ahead = self.lexer;
-                match ahead.next() {
-                    Result::Ok(Token { tok: Tok::Assign, .. }) => {
-                        self.lexer = ahead;
-                        self.bump()?;
-                        return Result::Ok(Line::Let(name, self.expr()?));
-                    },
-                    _ => {},
-                }
-            },
-            _ => {},
+        if let Tok::Name(name) = self.tok.tok {
+            let mut ahead = self.lexer;
+            if let Result::Ok(Token { tok: Tok::Assign, .. }) = ahead.next() {
+                self.lexer = ahead;
+                self.bump()?;
+                return Result::Ok(Line::Let(name, self.expr()?));
+            }
         }
         Result::Ok(Line::Show(self.expr()?))
     }

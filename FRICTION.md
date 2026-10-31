@@ -262,6 +262,41 @@ changed. The parser's functions call each other (`expr` → `term` →
 `unary` → `atom` → `expr`), and get theirs together. Hovering a function
 in an editor shows what was inferred.
 
+## No `if let`, `let .. else` or `while let` — fixed in 0.41.0
+
+An early return when something isn't there was a `match` with an arm for
+each case, and a loop that runs while a pattern matches was a `loop` with
+a `match` whose other arm leaves it:
+
+```rust,ignore
+let c = match self.rest.chars().next() {
+    Option::Some(c) => c,
+    Option::None => return Result::Ok(Token { tok: Tok::End, at }),
+};
+loop {
+    match self.rest.chars().next() {
+        Option::Some(' ' | '\t') => self.skip(1),
+        _ => return,
+    }
+}
+```
+
+Since 0.41.0 (t-lang step 28) they're `let .. else` and `while let`:
+
+```rust,ignore
+let Option::Some(c) = self.rest.chars().next() else {
+    return Result::Ok(Token { tok: Tok::End, at });
+};
+while let Option::Some(' ' | '\t') = self.rest.chars().next() {
+    self.skip(1);
+}
+```
+
+The digit loop shows what a pattern still says to the checker: after
+`let '0'..='9' = c else { break };`, it knows `c` is a digit, so `c as u32
+- 0x30` can't go below 0. The parser's nested "is this `name =`?" match
+became two `if let`s: 29 lines became 14.
+
 ## Expected, but didn't hurt
 
 - **Tuples.** `Lexer::next` gives a `Token { tok, at }`, which reads
