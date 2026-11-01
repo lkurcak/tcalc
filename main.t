@@ -110,6 +110,7 @@ fn push_tok(out: &mut String, t: Tok) {
 }
 
 /// What each line gives, worked out in turn with the same variables.
+#[blame_caller]
 fn answers(lines: &[&str], want: &[&str]) {
     let mut env = Env::new();
     assert_eq(&lines.len(), &want.len());
