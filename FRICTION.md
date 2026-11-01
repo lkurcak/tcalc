@@ -247,6 +247,8 @@ Two small things, from writing them:
   `assert_eq`, the innermost call outside core, not at the test that
   called it: which row failed is only in the values shown. Unsure; a test
   with one `answers` call each keeps it readable.
+  **Fixed in t 0.48.0** (step 34): `answers` says `#[blame_caller]`, so a
+  failure in it is shown at the test's call.
 
 ## Installing a pinned `t` — not friction
 
