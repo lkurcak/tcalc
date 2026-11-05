@@ -9,7 +9,8 @@
 use alloc::arena::Arena;
 
 use crate::error::{Error, What};
-use crate::lexer::{Lexer, Tok, Token};
+use crate::lexer::{Lexer, Token};
+use crate::lexer::Tok::{Assign, Close, End, Minus, Name, Num, Open, Percent, Plus, Slash, Star};
 
 /// A binary operator.
 #[derive(Discard, Copy, Eq)]
@@ -42,8 +43,8 @@ pub fn parse<'a>(line: &'a str, nodes: &'a Nodes<'a>) -> Result<Line<'a>, Error<
     let mut p = Parser { lexer, tok, nodes };
     let line = p.line()?;
     match p.tok.tok {
-        Tok::End => Result::Ok(line),
-        _ => Result::Err(p.unexpected()),
+        End => Ok(line),
+        _ => Err(p.unexpected()),
     }
 }
 
@@ -58,7 +59,7 @@ impl<'a> Parser<'a> {
     /// Moves on to the next token.
     fn bump(&mut self) -> Result<(), Error<'a>> {
         self.tok = self.lexer.next()?;
-        Result::Ok(())
+        Ok(())
     }
 
     /// The error for the token it's at, which can't be there.
@@ -69,24 +70,24 @@ impl<'a> Parser<'a> {
     fn line(&mut self) -> Result<Line<'a>, Error<'a>> {
         // `name =` starts a binding: look one token past the name, on a
         // copy of the lexer.
-        if let Tok::Name(name) = self.tok.tok {
+        if let Name(name) = self.tok.tok {
             let mut ahead = self.lexer;
-            if let Result::Ok(Token { tok: Tok::Assign, .. }) = ahead.next() {
+            if let Ok(Token { tok: Assign, .. }) = ahead.next() {
                 self.lexer = ahead;
                 self.bump()?;
-                return Result::Ok(Line::Let(name, self.expr()?));
+                return Ok(Line::Let(name, self.expr()?));
             }
         }
-        Result::Ok(Line::Show(self.expr()?))
+        Ok(Line::Show(self.expr()?))
     }
 
     fn expr(&mut self) -> Result<Expr<'a>, Error<'a>> {
         let mut lhs = self.term()?;
         loop {
             let op = match self.tok.tok {
-                Tok::Plus => Op::Add,
-                Tok::Minus => Op::Sub,
-                _ => return Result::Ok(lhs),
+                Plus => Op::Add,
+                Minus => Op::Sub,
+                _ => return Ok(lhs),
             };
             let at = self.tok.at;
             self.bump()?;
@@ -99,10 +100,10 @@ impl<'a> Parser<'a> {
         let mut lhs = self.unary()?;
         loop {
             let op = match self.tok.tok {
-                Tok::Star => Op::Mul,
-                Tok::Slash => Op::Div,
-                Tok::Percent => Op::Rem,
-                _ => return Result::Ok(lhs),
+                Star => Op::Mul,
+                Slash => Op::Div,
+                Percent => Op::Rem,
+                _ => return Ok(lhs),
             };
             let at = self.tok.at;
             self.bump()?;
@@ -113,10 +114,10 @@ impl<'a> Parser<'a> {
 
     fn unary(&mut self) -> Result<Expr<'a>, Error<'a>> {
         match self.tok.tok {
-            Tok::Minus => {
+            Minus => {
                 let at = self.tok.at;
                 self.bump()?;
-                Result::Ok(Expr::Neg(self.node(self.unary()?), at))
+                Ok(Expr::Neg(self.node(self.unary()?), at))
             },
             _ => self.atom(),
         }
@@ -124,19 +125,19 @@ impl<'a> Parser<'a> {
 
     fn atom(&mut self) -> Result<Expr<'a>, Error<'a>> {
         let e = match self.tok.tok {
-            Tok::Num(n) => Expr::Num(n),
-            Tok::Name(name) => Expr::Var(name, self.tok.at),
-            Tok::Open => {
+            Num(n) => Expr::Num(n),
+            Name(name) => Expr::Var(name, self.tok.at),
+            Open => {
                 self.bump()?;
                 let e = self.expr()?;
                 match self.tok.tok {
-                    Tok::Close => e,
-                    _ => return Result::Err(self.unexpected()),
+                    Close => e,
+                    _ => return Err(self.unexpected()),
                 }
             },
-            _ => return Result::Err(self.unexpected()),
+            _ => return Err(self.unexpected()),
         };
         self.bump()?;
-        Result::Ok(e)
+        Ok(e)
     }
 }

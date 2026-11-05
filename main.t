@@ -12,6 +12,7 @@ use std::Os;
 use error::{Error, What};
 use eval::{Done, Env};
 use lexer::Tok;
+use lexer::Tok::{Assign, Close, End, Minus, Name, Num, Open, Percent, Plus, Slash, Star};
 
 mod error;
 mod eval;
@@ -43,18 +44,18 @@ fn calc(out: &mut Stdout, env: &mut Env, line: &str) -> Result<(), std::io::Erro
 fn answer(env: &mut Env, line: &str) -> String {
     let nodes = Arena::new();
     let done = match parser::parse(line, &nodes) {
-        Result::Ok(l) => eval::run(&l, env),
-        Result::Err(e) => Result::Err(e),
+        Ok(l) => eval::run(&l, env),
+        Err(e) => Err(e),
     };
     let mut text = String::new();
     match done {
-        Result::Ok(Done::Bound(name, v)) => {
+        Ok(Done::Bound(name, v)) => {
             text.push_str(name);
             text.push_str(" = ");
             text.put(&v);
         },
-        Result::Ok(Done::Value(v)) => text.put(&v).into_ok(),
-        Result::Err(e) => report(&mut text, line, e),
+        Ok(Done::Value(v)) => text.put(&v).into_ok(),
+        Err(e) => report(&mut text, line, e),
     }
     text
 }
@@ -76,7 +77,7 @@ fn report(out: &mut String, line: &str, e: Error) {
             out.push(c);
             out.push('`');
         },
-        What::Unexpected(Tok::End) => out.push_str("unexpected end of input"),
+        What::Unexpected(End) => out.push_str("unexpected end of input"),
         What::Unexpected(t) => {
             out.push_str("unexpected `");
             push_tok(out, t);
@@ -95,17 +96,17 @@ fn report(out: &mut String, line: &str, e: Error) {
 /// Puts how `t` is written at the end of `out`.
 fn push_tok(out: &mut String, t: Tok) {
     match t {
-        Tok::Num(n) => out.put(&n).into_ok(),
-        Tok::Name(name) => out.push_str(name),
-        Tok::Plus => out.push('+'),
-        Tok::Minus => out.push('-'),
-        Tok::Star => out.push('*'),
-        Tok::Slash => out.push('/'),
-        Tok::Percent => out.push('%'),
-        Tok::Open => out.push('('),
-        Tok::Close => out.push(')'),
-        Tok::Assign => out.push('='),
-        Tok::End => {},
+        Num(n) => out.put(&n).into_ok(),
+        Name(name) => out.push_str(name),
+        Plus => out.push('+'),
+        Minus => out.push('-'),
+        Star => out.push('*'),
+        Slash => out.push('/'),
+        Percent => out.push('%'),
+        Open => out.push('('),
+        Close => out.push(')'),
+        Assign => out.push('='),
+        End => {},
     }
 }
 
