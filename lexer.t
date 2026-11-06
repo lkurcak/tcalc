@@ -1,6 +1,7 @@
 //! The tokenizer: a line of text, as tokens, one at a time.
 
 use crate::error::{Error, What};
+use Tok::{Assign, Close, End, Minus, Name, Num, Open, Percent, Plus, Slash, Star};
 
 /// What a token is.
 #[derive(Discard, Copy, Eq)]
@@ -36,32 +37,32 @@ impl<'a> Lexer<'a> {
     pub fn next(&mut self) -> Result<Token<'a>, Error<'a>> {
         self.skip_spaces();
         let at = self.at;
-        let Option::Some(c) = self.rest.chars().next() else {
-            return Result::Ok(Token { tok: Tok::End, at });
+        let Some(c) = self.rest.chars().next() else {
+            return Ok(Token { tok: End, at });
         };
         let tok = match c {
             '0'..='9' => return self.number(),
-            'a'..='z' | 'A'..='Z' | '_' => Tok::Name(self.name()),
-            '+' => Tok::Plus,
-            '-' => Tok::Minus,
-            '*' => Tok::Star,
-            '/' => Tok::Slash,
-            '%' => Tok::Percent,
-            '(' => Tok::Open,
-            ')' => Tok::Close,
-            '=' => Tok::Assign,
-            _ => return Result::Err(Error { what: What::UnknownChar(c), at }),
+            'a'..='z' | 'A'..='Z' | '_' => Name(self.name()),
+            '+' => Plus,
+            '-' => Minus,
+            '*' => Star,
+            '/' => Slash,
+            '%' => Percent,
+            '(' => Open,
+            ')' => Close,
+            '=' => Assign,
+            _ => return Err(Error { what: What::UnknownChar(c), at }),
         };
         match tok {
-            Tok::Name(_) => {},
+            Name(_) => {},
             _ => self.skip(1),
         }
-        Result::Ok(Token { tok, at })
+        Ok(Token { tok, at })
     }
 
     /// Skips spaces and tabs.
     fn skip_spaces(&mut self) {
-        while let Option::Some(' ' | '\t') = self.rest.chars().next() {
+        while let Some(' ' | '\t') = self.rest.chars().next() {
             self.skip(1);
         }
     }
@@ -76,23 +77,23 @@ impl<'a> Lexer<'a> {
     /// The decimal digits from here on, as a number.
     fn number(&mut self) -> Result<Token<'a>, Error<'a>> {
         let at = self.at;
-        let mut value: Option<i64> = Option::Some(0);
-        while let Option::Some(c) = self.rest.chars().next() {
+        let mut value: Option<i64> = Some(0);
+        while let Some(c) = self.rest.chars().next() {
             let '0'..='9' = c else { break };
             let digit = (c as u32 - 0x30) as i64;
             self.skip(1);
             // Once it's too big, it stays `None`, and the digits go on.
             value = match value {
-                Option::Some(v) => match checked_mul(v, 10) {
-                    Option::Some(v) => checked_add(v, digit),
-                    Option::None => Option::None,
+                Some(v) => match checked_mul(v, 10) {
+                    Some(v) => checked_add(v, digit),
+                    None => None,
                 },
-                Option::None => Option::None,
+                None => None,
             };
         }
         match value {
-            Option::Some(v) => Result::Ok(Token { tok: Tok::Num(v), at }),
-            Option::None => Result::Err(Error { what: What::Overflow, at }),
+            Some(v) => Ok(Token { tok: Num(v), at }),
+            None => Err(Error { what: What::Overflow, at }),
         }
     }
 

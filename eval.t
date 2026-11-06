@@ -21,16 +21,16 @@ impl Env {
     /// The value of `name`, if it's bound.
     pub fn get(&self, name: &str) -> Option<i64> {
         match self.vars.get(name) {
-            Option::Some(v) => Option::Some(*v),
-            Option::None => Option::None,
+            Some(v) => Some(*v),
+            None => None,
         }
     }
 
     /// Binds `name` to `value`, or rebinds it.
     pub fn set(&mut self, name: &str, value: i64) {
         match self.vars.get_mut(name) {
-            Option::Some(v) => *v = value,
-            Option::None => {
+            Some(v) => *v = value,
+            None => {
                 self.vars.insert(String::from(name), value);
             },
         }
@@ -52,23 +52,23 @@ pub fn run<'a>(line: &Line<'a>, env: &mut Env) -> Result<Done<'a>, Error<'a>> {
         Line::Let(name, e) => {
             let v = eval(e, env)?;
             env.set(*name, v);
-            Result::Ok(Done::Bound(*name, v))
+            Ok(Done::Bound(*name, v))
         },
-        Line::Show(e) => Result::Ok(Done::Value(eval(e, env)?)),
+        Line::Show(e) => Ok(Done::Value(eval(e, env)?)),
     }
 }
 
 /// The value of `e`, with the variables in `env`.
 pub fn eval<'a>(e: &Expr<'a>, env: &Env) -> Result<i64, Error<'a>> {
     match e {
-        Expr::Num(n) => Result::Ok(*n),
+        Expr::Num(n) => Ok(*n),
         Expr::Var(name, at) => match env.get(*name) {
-            Option::Some(v) => Result::Ok(v),
-            Option::None => Result::Err(Error { what: What::UnknownVar(*name), at: *at }),
+            Some(v) => Ok(v),
+            None => Err(Error { what: What::UnknownVar(*name), at: *at }),
         },
         Expr::Neg(e, at) => match checked_neg(eval(e, env)?) {
-            Option::Some(v) => Result::Ok(v),
-            Option::None => Result::Err(Error { what: What::Overflow, at: *at }),
+            Some(v) => Ok(v),
+            None => Err(Error { what: What::Overflow, at: *at }),
         },
         Expr::Bin(op, l, r, at) => {
             let l = eval(l, env)?;
@@ -85,8 +85,8 @@ pub fn eval<'a>(e: &Expr<'a>, env: &Env) -> Result<i64, Error<'a>> {
                 Op::Rem => checked_rem(l, r),
             };
             match v {
-                Option::Some(v) => Result::Ok(v),
-                Option::None => Result::Err(Error { what, at: *at }),
+                Some(v) => Ok(v),
+                None => Err(Error { what, at: *at }),
             }
         },
     }
