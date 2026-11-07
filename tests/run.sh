@@ -10,14 +10,10 @@ t check --deny-warnings main.t
 t fmt --check ./*.t
 t test --deny-warnings main.t
 
-# tcalc's output, with each line of tests/input.txt after the prompt it
-# answers, as at a terminal, where what's typed is echoed. Each line gives
-# one line of output; the last prompt, at the end of the input, gives none.
+# tcalc's output: its input isn't a terminal, so it echoes each line of
+# tests/input.txt after the prompt it answers, as a terminal would.
 transcript() {
-    t main.t < tests/input.txt |
-        awk 'NR == FNR { input[FNR] = $0; next }
-             FNR in input { print "> " input[FNR]; print substr($0, 3) }' \
-            tests/input.txt -
+    t main.t < tests/input.txt
 }
 
 if [ "${BLESS:-}" = 1 ]; then
