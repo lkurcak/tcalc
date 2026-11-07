@@ -117,13 +117,18 @@ will have. t-lang's docs/19-std-io.md lists the ways out (destructors,
 and `calc` writes its text with `out.line(&text.as_str())` as its last
 expression. No `free` is left in tcalc.
 
-## Can't tell a terminal from a pipe — gap
+## Can't tell a terminal from a pipe — fixed in 0.63.0
 
 At a terminal, what's typed is echoed after the `> `, so the output reads
 as a transcript. Piped from `tests/input.txt`, it's only prompts and
 answers, and an error's `^` points at nothing. tcalc can't echo its input
 only when it isn't a terminal, as T has no `isatty`, so `tests/run.sh`
 puts the input back in with `awk`. Small, but every REPL wants it.
+
+**Fixed in 0.63.0** (t-lang step 47, `docs/47-io.md`): `os.stdin.is_terminal()`.
+tcalc echoes each line when its input isn't a terminal, and the `awk` is
+gone. Its loop is now generic over a `core::io::Read` and `Write`, so a
+test runs a whole session in memory (`a_session_reads_as_at_a_terminal`).
 
 ## Every `String` must be freed by hand — by design
 

@@ -1,12 +1,16 @@
 //! tcalc: a calculator of integers, with variables.
 //!
 //! It reads lines, after a `> ` prompt, and writes the value of each, or
-//! where and what's wrong with it, until its input ends.
+//! where and what's wrong with it, until its input ends. When its input
+//! isn't typed at a terminal, it writes each line after its prompt too,
+//! so what it writes reads as a session at one.
 
 use alloc::arena::Arena;
+use alloc::io::read_line;
+use alloc::list::List;
 use alloc::string::String;
 use core::fmt::Write;
-use std::io::Stdout;
+use core::io::{Bytes, Read};
 use std::Os;
 
 use error::{Error, What};
@@ -19,24 +23,34 @@ mod eval;
 mod lexer;
 mod parser;
 
-/// Reads lines until there are no more, and works out each, after a
-/// `> ` prompt, with the variables bound so far.
+/// Works out each line of the input, echoing it if no one's typing it.
 fn main(os: Os) -> Result<(), std::io::Error> {
     let mut input = os.stdin;
     let mut out = os.stdout;
+    let echo = !input.is_terminal();
+    session(&mut input, &mut out, echo)
+}
+
+/// Reads lines from `input` until there are no more, and works out each,
+/// after a `> ` prompt, with the variables bound so far, writing to `out`.
+/// If `echo`, writes each line after its prompt, as a terminal shows what's
+/// typed.
+fn session<R: Read, W: core::io::Write>(
+    input: &mut R,
+    out: &mut W,
+    echo: bool,
+) -> Result<(), std::io::Error> {
     let mut env = Env::new();
     let mut line = String::new();
     out.put(&"> ")?;
-    while input.read_line(&mut line)? {
-        calc(&mut out, &mut env, line.as_str())?;
+    while read_line(input, &mut line)? {
+        if echo {
+            out.line(&line.as_str())?;
+        }
+        out.line(&answer(&mut env, line.as_str()).as_str())?;
         out.put(&"> ")?;
     }
     out.line(&"")
-}
-
-/// Writes the value of `line`, or where and what's wrong with it.
-fn calc(out: &mut Stdout, env: &mut Env, line: &str) -> Result<(), std::io::Error> {
-    out.line(&answer(env, line).as_str())
 }
 
 /// The value of `line`, or where and what's wrong with it, as `calc`
@@ -165,4 +179,17 @@ fn an_error_binds_nothing() {
         ["x = 1 / 0", "x"].as_slice(),
         ["        ^ division by zero", "  ^ unknown variable `x`"].as_slice(),
     );
+}
+
+#[test]
+fn a_session_reads_as_at_a_terminal() -> Result<(), std::io::Error> {
+    let mut input = Bytes::new("x = 2 * 3\nx * x\n1 +".as_bytes());
+    let mut out = List::new();
+    session(&mut input, &mut out, true)?;
+    let text = String::from_utf8(out).ok().expect("tcalc writes UTF-8");
+    assert_eq(
+        &text.as_str(),
+        &"> x = 2 * 3\nx = 6\n> x * x\n36\n> 1 +\n     ^ unexpected end of input\n> \n",
+    );
+    Ok(())
 }
