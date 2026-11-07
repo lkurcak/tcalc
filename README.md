@@ -34,7 +34,7 @@ tests/run.sh      # check: no warnings, formatted, t test passes, and tests/inpu
 BLESS=1 tests/run.sh   # rewrite tests/expected.txt
 ```
 
-It needs `t` 0.32.0, the version CI pins (in `.github/workflows/ci.yml`).
+It needs `t` 0.65.0, the version CI pins (in `.github/workflows/t.yml`).
 Any of these installs it:
 
 - a release binary from <https://github.com/lkurcak/t-lang/releases>, which
