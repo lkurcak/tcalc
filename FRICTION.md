@@ -183,6 +183,14 @@ refinements in type arguments). Both are listed as missing there. So the
 tokenizer still says `with panic`; what changed is that the reason is
 now one the docs name, not "measures don't exist".
 
+**Lengths arrived in 0.72.0** (t-lang step 56): a refinement can name a
+field, and `split_at`'s halves say how long they are, so `tail.len() + n
+== rest.len()` is known, and `at + rest.len()` could be a field's
+invariant that makes `at + n` provably fit. The `expect` stays: whether
+`n` is where a character starts isn't in the logic, so `split_at` is
+still an `Option` here. The tokenizer keeps `with panic` (inferred) for
+that one reason now.
+
 ## `Box::new` is `with {alloc, panic}` — by design
 
 The parser builds `Box`es, so it says `with {alloc, panic}`: running out
