@@ -42,15 +42,15 @@ fn session<R: Read, W: core::io::Write>(
 ) -> Result<(), std::io::Error> {
     let mut env = Env::new();
     let mut line = String::new();
-    out.put(&"> ")?;
+    out.put("> ")?;
     while read_line(input, &mut line)? {
         if echo {
             out.line(&line.as_str())?;
         }
         out.line(&answer(&mut env, line.as_str()).as_str())?;
-        out.put(&"> ")?;
+        out.put("> ")?;
     }
-    out.line(&"")
+    out.line("")
 }
 
 /// The value of `line`, or where and what's wrong with it, as `calc`
