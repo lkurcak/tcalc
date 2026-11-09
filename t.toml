@@ -1,4 +1,4 @@
 libraries = ["alloc", "std"]
 
 [dependencies]
-hashmap = { git = "https://github.com/lkurcak/t-libs", rev = "d537539b8a322c074ba5cbc31961556c93e3497f", subdirectory = "hashmap" }
+hashmap = { git = "https://github.com/lkurcak/t-libs", rev = "db526e4bba28b02613316b94443423c41422b5cf", subdirectory = "hashmap" }

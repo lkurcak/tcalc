@@ -70,7 +70,7 @@ impl<'a> Lexer<'a> {
     /// Skips `n` bytes, which must end where a character does.
     fn skip(&mut self, n: usize) {
         let rest = self.rest;
-        self.rest = rest.split_at(n).expect("skipping whole characters").tail;
+        self.rest = rest.split_at(n).expect("skipping whole characters").1;
         self.at = self.at + n;
     }
 
@@ -108,6 +108,6 @@ impl<'a> Lexer<'a> {
             }
         }
         self.skip(n);
-        start.split_at(n).expect("a name is ASCII").head
+        start.split_at(n).expect("a name is ASCII").0
     }
 }

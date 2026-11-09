@@ -330,5 +330,7 @@ became two `if let`s: 29 lines became 14.
 ## Expected, but didn't hurt
 
 - **Tuples.** `Lexer::next` gives a `Token { tok, at }`, which reads
-  better than a tuple would.
+  better than a tuple would. (T has tuples since 0.74.0; `Token` stays
+  named. `split_at` gives a pair now: `.0` and `.1` for `.head` and
+  `.tail`.)
 - **`Clone`.** Never needed: names are copied with `String::from`.
