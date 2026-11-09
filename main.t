@@ -78,7 +78,7 @@ fn answer(env: &mut Env, line: &str) -> String {
 /// then what's wrong.
 fn report(out: &mut String, line: &str, e: Error) {
     // The caret goes under the character, so count characters, not bytes.
-    let before = line.split_at(e.at).expect("an error is where a character starts").head;
+    let before = line.split_at(e.at).expect("an error is where a character starts").0;
     let column = before.chars().count();
     out.push_str("  ");
     for _ in 0..column {
