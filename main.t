@@ -68,7 +68,7 @@ fn answer(env: &mut Env, line: &str) -> String {
             text.push_str(" = ");
             text.put(&v);
         },
-        Ok(Done::Value(v)) => text.put(&v).into_ok(),
+        Ok(Done::Value(v)) => text.put(&v).unwrap(),
         Err(e) => report(&mut text, line, e),
     }
     text
@@ -110,7 +110,7 @@ fn report(out: &mut String, line: &str, e: Error) {
 /// Puts how `t` is written at the end of `out`.
 fn push_tok(out: &mut String, t: Tok) {
     match t {
-        Num(n) => out.put(&n).into_ok(),
+        Num(n) => out.put(&n).unwrap(),
         Name(name) => out.push_str(name),
         Plus => out.push('+'),
         Minus => out.push('-'),
